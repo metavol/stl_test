@@ -1,32 +1,33 @@
 import streamlit as st
-
-st.title("タイトル")
-
-st.write("これは基本的なStreamlitアプリです。")
-
-st.header("ヘッダー")
-st.subheader("サブヘッダー")
-st.text("通常のテキスト")
-st.markdown("**Markdown** を使うこともできます。")
-
-
-
+import yfinance as yf
 import pandas as pd
-import numpy as np
-
-df = pd.DataFrame(
-    np.random.randn(10, 3),
-    columns=["A", "B", "C"]
-)
-
-st.dataframe(df)  # インタラクティブなテーブル
-st.table(df.head())  # 静的なテーブル
-
 import matplotlib.pyplot as plt
 
-x = np.linspace(0, 10, 100)
-y = np.sin(x)
 
-fig, ax = plt.subplots()
-ax.plot(x, y)
-st.pyplot(fig)
+# タイトル
+st.title("株価チャート表示アプリ")
+
+# テキストボックス
+ticker = st.text_input("銘柄（ティッカーシンボルを入力してください）", value="AAPL")
+
+# ボタン
+if st.button("株価取得"):
+    try:
+        # 株価データ取得
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="1mo")  # 過去1か月のデータ
+
+        if hist.empty:
+            st.error("データが見つかりませんでした。正しいティッカーを入力してください。")
+        else:
+            # チャートの描画
+            st.subheader(f"{ticker} の株価推移")
+            fig, ax = plt.subplots()
+            ax.plot(hist.index, hist["Close"], label="Close Price", color="blue")
+            ax.set_xlabel("日付")
+            ax.set_ylabel("株価")
+            ax.legend()
+            st.pyplot(fig)
+
+    except Exception as e:
+        st.error(f"エラーが発生しました: {e}")
